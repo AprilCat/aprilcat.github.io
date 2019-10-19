@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>自行编译使能cuda支持的opencv 4.1.1 | VoidSoul's Blog</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/normalize/8.0.1/normalize.min.css"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//lib.baomitu.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//lib.baomitu.com/jquery/3.4.0/jquery.min.js"></script><link rel="icon" mask="" sizes="any" href="/favicon.ico"><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create','UA-148031274-1','auto');ga('send','pageview');
+</script></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">自行编译使能cuda支持的opencv 4.1.1</h1><a id="logo" href="/.">VoidSoul's Blog</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> Home</i></a><a href="/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/about/"><i class="fa fa-user"> About</i></a><a href="https://github.com/AprilCat/"><i class="fa fa-github"> GitHub</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">自行编译使能cuda支持的opencv 4.1.1</h1><div class="post-meta">Oct 19, 2019</div><a class="disqus-comment-count" data-disqus-identifier="2019/10/19/install-opencv-cuda/" href="/2019/10/19/install-opencv-cuda/#disqus_thread"></a><div class="post-content"><h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>darknet的yolov3的算法模型在cpu版本的opencv下速度较慢，推理时间为400ms~500ms。要想用上cuda加速就要重新编译OpenCV。于是开始编译gpu版本的opencv，同时加上nonfree特性方便以后其他项目算法开发。</p>
+<h2 id="Environment"><a href="#Environment" class="headerlink" title="Environment"></a>Environment</h2><ul>
+<li>CPU: Intel i7 </li>
+<li>GPU: Nvidia GTX760</li>
+<li>Windows 10 Pro<h2 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h2></li>
+<li>CUDA 10.1 update 2 For Windows 10 x86_64</li>
+<li>cudnn-10.1-windows10-x64-v7.6.4.38</li>
+<li><a href="https://github.com/opencv/opencv" target="_blank" rel="noopener">opencv</a> , <a href="https://github.com/opencv/opencv_contrib" target="_blank" rel="noopener">opencv_contrib</a></li>
+<li>cmake 3.15+<h2 id="Step"><a href="#Step" class="headerlink" title="Step"></a>Step</h2><h3 id="Prerequisite-1"><a href="#Prerequisite-1" class="headerlink" title="Prerequisite"></a>Prerequisite</h3></li>
+</ul>
+<ol>
+<li>安装CUDA 10.1(10.1开始才支持VS2019)，安装完成后将cudnn的压缩包解压，内容根据相应文件夹名复制到cuda的安装目录下。</li>
+<li>opencv 和 opencv_contrib 的版本都有对应关系。 我这里opencv选择了4.1.1版本，opencv_contrib要checkout出跟4.1.1对应的branch<h3 id="process-with-cmake"><a href="#process-with-cmake" class="headerlink" title="process with cmake"></a>process with cmake</h3></li>
+<li>在opencv 源码目录下新建build目录。 打开cmake，source path选择opencv的目录，build path选择刚创建的build目录，勾选Grouped。</li>
+<li>点击Configure按钮， 我选择了Visual Studio 16 2019 x64，platform我也指定x64， 点击Finish。</li>
+<li>等待Configuring done，点开OPENCV分组，OPENCV_DNN_CUDA打勾，OPENCV_ENABLE_NONFREE打勾，OPENCV_PYTHON3_VERSION打勾。</li>
+<li>search栏搜索opencv_extra_modules_path，填入opencv_contrib模块的路径,应指向opencv_contrib/modules目录。搜索with_cuda，打勾。build_cuda_stubs确认不要勾上。</li>
+<li>再次configure，提示ippicv下载失败，一般是墙的原因，点进去opencv/3rdparty/ippicv目录打开cmake文件，根据cmake的脚本，手动拼接出一个下载地址，可能不同版本的ippicv下载地址规则不一样，我这里就分析当前版本的（4.1.1）。首先会发现一个很显眼的URL： <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://raw.githubusercontent.com/opencv/opencv_3rdparty/<span class="variable">$&#123;IPPICV_COMMIT&#125;</span>/ippicv/</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>接着找到IPPICV_COMMIT这个变量的设置代码，还有针对当前编译平台的源码包包名<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span>(IPPICV_COMMIT <span class="string">"32e315a5b106a7b89dbed51c28f8120a48b368b4"</span>)</span><br><span class="line">···</span><br><span class="line">    <span class="keyword">if</span>(X86_64)</span><br><span class="line">      <span class="built_in">set</span>(OPENCV_ICV_NAME <span class="string">"ippicv_2019_win_intel64_20180723_general.zip"</span>)</span><br><span class="line">      <span class="built_in">set</span>(OPENCV_ICV_HASH <span class="string">"1d222685246896fe089f88b8858e4b2f"</span>)</span><br></pre></td></tr></table></figure></p>
+<p>据此拼接出一个下载地址<a href="https://raw.githubusercontent.com/opencv/opencv_3rdparty/32e315a5b106a7b89dbed51c28f8120a48b368b4/ippicv/ippicv_2019_win_intel64_20180723_general.zip。这里的IPPICV_COMMIT应该每次opencv" target="_blank" rel="noopener">https://raw.githubusercontent.com/opencv/opencv_3rdparty/32e315a5b106a7b89dbed51c28f8120a48b368b4/ippicv/ippicv_2019_win_intel64_20180723_general.zip。这里的IPPICV_COMMIT应该每次opencv</a> release都会变的。</p>
+<ol start="8">
+<li>提示没有找到VTK，VTK是一个用于3D可视化显示的库。去官网下载vtk源码包进行cmake，编译visual studio工程后。opencv cmake这边指定VTK_DIR到VTK的build目录。</li>
+<li>这次configure时间较长，提示Configuring done后点击Generate。等待Generating done，open project。<h3 id="Visual-Studio-2019-build"><a href="#Visual-Studio-2019-build" class="headerlink" title="Visual Studio 2019 build"></a>Visual Studio 2019 build</h3></li>
+<li>在VS2019中，将工程配置成Release，然后build solution。等待编译结束，视PC性能而定时间，因为开了contrib、non-free等特性，会编译很久。</li>
+<li><p>编译完成，38 succeeded， 一步步往上翻，发现最早的错误是ippicvmt.lib: fatal error LNK1127: library is corrupt，意思是库损坏，重新下载了ippicv覆盖掉原来的库。重新编译，不再报错。最后一行显示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">========== Build: 178 succeeded, 0 failed, 8 up-to-date, 9 skipped ==========</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在Solution Explorer中找到INSTALL项目，右键选择project only下的build only install。所有需要的东西都会被整理到build/install目录下。</p>
+<h3 id="install-OpenCV-with-cuda-support-in-python"><a href="#install-OpenCV-with-cuda-support-in-python" class="headerlink" title="install OpenCV(with cuda support) in python"></a>install OpenCV(with cuda support) in python</h3><p>想要安装opencv进python3的时候发现并没有装成功，没有提示报错。在cmake-gui里搜索了下发现python3 numpy include的路径为空，在configure的时候提示信息会显示不可用的模块包括python2和python3，手动填入numpy include路径后，再次configure就显示python3模块将要安装到的位置。重新generate，重新编译。这回install有install到anaconda的Lib/site-packages目录下。但在python环境中import cv2 却提示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Traceback (most recent call last):</span><br><span class="line">  File <span class="string">"F:/src/tensorflow_yolov3_pretest/test_env.py"</span>, line 1, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">    import cv2</span><br><span class="line">  File <span class="string">"D:\Users\nephilim\Anaconda3\lib\site-packages\cv2\__init__.py"</span>, line 89, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">    bootstrap()</span><br><span class="line">  File <span class="string">"D:\Users\nephilim\Anaconda3\lib\site-packages\cv2\__init__.py"</span>, line 79, <span class="keyword">in</span> bootstrap</span><br><span class="line">    import cv2</span><br><span class="line">ImportError: DLL load failed: 找不到指定的模块。</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>应该不是opencv的路径问题，检查了自动生成的cv2的python脚本中都设置对了，可能是opencv的什么依赖库没找到，于是尝试运行opencv下的annotation工具看看有没依赖报错。结果提示找不到vtk的dll，于是先解决vtk的库。vtk install的时候提示Error MSB3073，以管理员权限运行VS2019可以解决，后来发现是因为VTK的install路径是C盘Program Files目录，不是很爽，给剪切了出来。然后将VTK/bin目录添加到环境变量Path中。顺便把opencv的x64/vc16/bin目录也放在Path中。而后重新打开pycharm，运行如下代码：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line">print(cv2.__version__)</span><br><span class="line">print(cv2)</span><br><span class="line">detector1 = cv2.xfeatures2d.SIFT_create()</span><br><span class="line">detector2 = cv2.xfeatures2d.SURF_create()</span><br></pre></td></tr></table></figure></p>
+<p>打印结果<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">D:\Users\nephilim\Anaconda3\python.exe F:/src/tensorflow_yolov3_pretest/test_env.py</span><br><span class="line">4.1.1</span><br><span class="line">&lt;module <span class="string">'cv2'</span> from <span class="string">'D:/Users/nephilim/Anaconda3/Lib/site-packages/cv2\\python-3.7\\cv2.cp37-win_amd64.pyd'</span>&gt;</span><br><span class="line"></span><br><span class="line">Process finished with <span class="built_in">exit</span> code 0</span><br></pre></td></tr></table></figure></p>
+<p>安装成功</p>
+<h2 id="重新跑一遍yolov3验证cuda加速是否可行"><a href="#重新跑一遍yolov3验证cuda加速是否可行" class="headerlink" title="重新跑一遍yolov3验证cuda加速是否可行"></a>重新跑一遍yolov3验证cuda加速是否可行</h2><p>最后测试一下带cuda支持的opencv，发现仍没有调用到gpu，查下相关资料发现opencv的dnn模块目前还不支持cuda，至少官方针对这一部分是in progress。<a href="https://github.com/opencv/opencv/pull/14827" target="_blank" rel="noopener">progress</a></p>
+<h2 id="pycharm中无法自动提示cv2相关代码"><a href="#pycharm中无法自动提示cv2相关代码" class="headerlink" title="pycharm中无法自动提示cv2相关代码"></a>pycharm中无法自动提示cv2相关代码</h2><p>在python中安装自己编译的opencv，没有代码自动补全功能，这一部分目前还没找到办法解决。</p>
+</div><div class="tags"></div><div class="post-nav"><a class="next" href="/2019/10/03/ffmpeg-vaapi/">在up squared上让ffmpeg支持硬件编解码</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论（请确保 Disqus 可以正常加载）</button></div><script type="text/javascript">var disqus_config = function () {
+    this.page.url = 'http://voidsoul.cc/2019/10/19/install-opencv-cuda/';
+    this.page.identifier = '2019/10/19/install-opencv-cuda/';
+    this.page.title = '自行编译使能cuda支持的opencv 4.1.1';
+  };</script><script type="text/javascript" id="disqus-lazy-load-script">$.ajax({
+url: 'https://disqus.com/next/config.json',
+timeout: 2500,
+type: 'GET',
+success: function(){
+  var d = document;
+  var s = d.createElement('script');
+  s.src = '//voidsoul.disqus.com/embed.js';
+  s.setAttribute('data-timestamp', + new Date());
+  (d.head || d.body).appendChild(s);
+  $('.disqus_click_btn').css('display', 'none');
+},
+error: function() {
+  $('.disqus_click_btn').css('display', 'block');
+}
+});</script><script type="text/javascript" id="disqus-click-load">$('.btn_click_load').click(() => {  //click to load comments
+    (() => { // DON'T EDIT BELOW THIS LINE
+        var d = document;
+        var s = d.createElement('script');
+        s.src = '//voidsoul.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', + new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+    $('.disqus_click_btn').css('display','none');
+});</script><script type="text/javascript" id="disqus-count-script">$(function() {
+     var xhr = new XMLHttpRequest();
+     xhr.open('GET', '//disqus.com/next/config.json', true);
+     xhr.timeout = 2500;
+     xhr.onreadystatechange = function () {
+       if (xhr.readyState === 4 && xhr.status === 200) {
+         $('.post-meta .post-comments-count').show();
+         var s = document.createElement('script');
+         s.id = 'dsq-count-scr';
+         s.src = 'https://voidsoul.disqus.com/count.js';
+         s.async = true;
+         (document.head || document.body).appendChild(s);
+       }
+     };
+     xhr.ontimeout = function () { xhr.abort(); };
+     xhr.send(null);
+   });
+</script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://voidsoul.cc"/></form></div><div class="widget"><form class="search-form" action="//www.baidu.com/baidu" method="get" accept-charset="utf-8" target="_blank"><input type="search" name="word" maxlength="20" placeholder="Search"/><input type="hidden" name="si" value="http://voidsoul.cc"/><input name="tn" type="hidden" value="bds"/><input name="cl" type="hidden" value="3"/><input name="ct" type="hidden" value="2097152"/><input name="s" type="hidden" value="on"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> Categories</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> Tags</i></div><div class="tagcloud"><a href="/tags/summary/" style="font-size: 15px;">summary</a> <a href="/tags/stm32/" style="font-size: 15px;">stm32</a> <a href="/tags/mysql-database/" style="font-size: 15px;">mysql database</a> <a href="/tags/proxy/" style="font-size: 15px;">proxy</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2019/10/19/install-opencv-cuda/">自行编译使能cuda支持的opencv 4.1.1</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/10/03/ffmpeg-vaapi/">在up squared上让ffmpeg支持硬件编解码</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/09/29/cJSON-usage/">cJSON用法小结</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/09/16/lantern-proxy/">lantern 开启代理供局域网内其他电脑使用</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/09/15/Hi3516CV300-uboot/">Hi3516CV300 uboot 固化启动参数</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/09/15/How-to-embedded-GA/">如何在Hexo中嵌入Google Analytics</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/09/14/Hi3516-MD/">Hi3516CV300 移动侦测实现</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/01/01/2018.summary/">2018 个人总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/05/01/hadoop-single/">hadoop 的安装与分布式模式配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/30/operation/">mysql basic operation</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> Recent Comments</i></div><script type="text/javascript" src="//voidsoul.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> Links</i></div><ul></ul><a href="http://yemi.me/" title="yemi" target="_blank">yemi</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2019 <a href="/." rel="nofollow">VoidSoul's Blog.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
